@@ -34,10 +34,10 @@ This project includes six files, with the final and most updated version being:
 ### Subscribe Topics (Relay Control)
 - **relay1**: Controls the first relay.
 - **relay2**: Controls the second relay.
-- **relay3**: Controls the second relay.
-- **relay4**: Controls the second relay.
-- **relay5**: Controls the second relay.
-- **relay6**: Controls the second relay.
+- **relay3**: Controls the third relay.
+- **relay4**: Controls the fourth relay.
+- **relay5**: Controls the fifth relay.
+- **relay6**: Controls the sixth relay.
 
 ## CloudAMQ Configuration
 
