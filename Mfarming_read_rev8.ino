@@ -41,17 +41,17 @@ ModbusMaster sensor;
 // MQTT settings
 const char* wifiName = "SMARTFARMING MODEM";
 const char* wifiPass = "smfamodem";
-const char* brokerUser = "obyskxhx:obyskxhx";
-const char* brokerPass = "Fe_3_tBuwmc8vMMqT2hYiboTsBlBmPz1";
-const char* brokerHost = "armadillo.rmq.cloudamqp.com";
+const char* brokerUser = "smartfarming";
+const char* brokerPass = "smartfarming";
+const char* brokerHost = "54.196.58.97";
 
 // MQTT Topics
 const char* topicBHT = "farm/bht";
 const char* topicNpk1 = "farm/npk1";
 const char* topicNpk2 = "farm/npk2";
 
-const char* topicRelay1 = "relay1";
-const char* topicRelay2 = "relay2";
+const char* topicRelay1 = "relay1"; //valve air
+const char* topicRelay2 = "relay2"; //valve nutrisi
 const char* topicRelay3 = "relay3";
 const char* topicRelay4 = "relay4";
 const char* topicRelay5 = "relay5";
@@ -157,13 +157,8 @@ void loop() {
   readDHT();
   readLight();
   if (timer3Detik.TRIGGERED) {
-    if (statusGantian) {
-      readNPK(sensor1, "Sensor 1", sensor1Data);
-      statusGantian = false;
-    } else {
-      readNPK(sensor2, "Sensor 2", sensor2Data);
-      statusGantian = true;
-    }
+    readNPK(sensor1, "Sensor 1", sensor1Data);
+    readNPK(sensor2, "Sensor 2", sensor2Data);
   }
 
   // Publish sensor data every 30 seconds
@@ -190,11 +185,18 @@ void loop() {
 void readDHT() {
   temperature = dht.readTemperature();
   humidity = dht.readHumidity();
+  Serial.print("Humidity: ");
+  Serial.println(humidity);
+  Serial.print("Temperature: ");
+  Serial.println(temperature);
 }
 
 // Read data from BH1750 sensor
 void readLight() {
   lux = lightMeter.readLightLevel();
+  Serial.print("Light: ");
+  Serial.print(lux);
+  Serial.println(" lx");
 }
 
 // Display sensor readings on LCD
@@ -243,9 +245,9 @@ void npkLCD(int sensorNumber, uint16_t* data) {
 // Publish sensor data to MQTT broker
 void publishData() {
   DynamicJsonDocument json(1024);
-  json["temperature"] = temperature;
-  json["humidity"] = humidity;
-  json["lux"] = lux;
+  json["viciTemperature"] = temperature;
+  json["viciHumidity"] = humidity;
+  json["viciLuminosity"] = lux;
 
   char buffer[256];
   size_t n = serializeJson(json, buffer);
@@ -259,10 +261,10 @@ void publishDataNPK(const char* sensorName, const char* topic, uint16_t* data) {
   dataNPK["soilHumidity"] = data[0];
   dataNPK["soilTemperature"] = data[1];
   dataNPK["soilConductivity"] = data[2];
-  dataNPK["soilPH"] = data[3];
-  dataNPK["nitrogen"] = data[4];
-  dataNPK["phosphorus"] = data[5];
-  dataNPK["potassium"] = data[6];
+  dataNPK["soilPh"] = data[3];
+  dataNPK["soilNitrogen"] = data[4];
+  dataNPK["soilPhosphorus"] = data[5];
+  dataNPK["soilPotassium"] = data[6];
 
   String jsonNpk;
   serializeJson(dataNPK, jsonNpk);
@@ -280,39 +282,39 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
   if (strcmp(topic, topicRelay1) == 0) {
-    if (message == "1") {
+    if (message == "0") {
       digitalWrite(RELAY1, HIGH);
-    } else if (message == "0") {
+    } else if (message == "1") {
       digitalWrite(RELAY1, LOW);
     }
   } else if (strcmp(topic, topicRelay2) == 0) {
-    if (message == "1") {
+    if (message == "0") {
       digitalWrite(RELAY2, HIGH);
-    } else if (message == "0") {
+    } else if (message == "1") {
       digitalWrite(RELAY2, LOW);
     }
   } else if (strcmp(topic, topicRelay3) == 0) {
-    if (message == "1") {
+    if (message == "0") {
       digitalWrite(RELAY3, HIGH);
-    } else if (message == "0") {
+    } else if (message == "1") {
       digitalWrite(RELAY3, LOW);
     }
   } else if (strcmp(topic, topicRelay4) == 0) {
-    if (message == "1") {
+    if (message == "0") {
       digitalWrite(RELAY4, HIGH);
-    } else if (message == "0") {
+    } else if (message == "1") {
       digitalWrite(RELAY4, LOW);
     }
   } else if (strcmp(topic, topicRelay5) == 0) {
-    if (message == "1") {
+    if (message == "0") {
       digitalWrite(RELAY5, HIGH);
-    } else if (message == "0") {
+    } else if (message == "1") {
       digitalWrite(RELAY5, LOW);
     }
   } else if (strcmp(topic, topicRelay6) == 0) {
-    if (message == "1") {
+    if (message == "0") {
       digitalWrite(RELAY6, HIGH);
-    } else if (message == "0") {
+    } else if (message == "1") {
       digitalWrite(RELAY6, LOW);
     }
   }
@@ -360,12 +362,12 @@ void reconnect() {
 
 // Turn off all relays
 void turnOffRelays() {
-  digitalWrite(RELAY1, LOW);
-  digitalWrite(RELAY2, LOW);
-  digitalWrite(RELAY3, LOW);
-  digitalWrite(RELAY4, LOW);
-  digitalWrite(RELAY5, LOW);
-  digitalWrite(RELAY6, LOW);
+  digitalWrite(RELAY1, HIGH);
+  digitalWrite(RELAY2, HIGH);
+  digitalWrite(RELAY3, HIGH);
+  digitalWrite(RELAY4, HIGH);
+  digitalWrite(RELAY5, HIGH);
+  digitalWrite(RELAY6, HIGH);
 }
 
 // Read NPK sensor data
